@@ -4,16 +4,22 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { UsersModule } from './users/users.module';
+import { ListingsModule } from './listings/listings.module';
+import { CategoryModule } from './categories/categories.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
     MongooseModule.forRootAsync({
       useFactory: () => ({
-        uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/tummi-bisasewa',
+        uri: process.env.MONGODB_URI,
       }),
     }),
     UsersModule,
+    ListingsModule,
+    CategoryModule,
+    BookingsModule,
     // ...modules like AuthModule, UsersModule, etc.
   ],
 })

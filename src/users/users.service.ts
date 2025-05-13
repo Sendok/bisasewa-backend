@@ -10,20 +10,27 @@ import { User } from './schemas/user.schema';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userModel.findOne({ email }).exec();
+  async create(data: Partial<User>): Promise<User> {
+    return new this.userModel(data).save();
+  }
+
+  async findAll(): Promise<User[]> {
+    return this.userModel.find().exec();
   }
 
   async findById(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
   }
 
-  async create(data: Partial<User>): Promise<User> {
-    const createdUser = new this.userModel(data);
-    return createdUser.save();
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userModel.findOne({ email }).exec();
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userModel.find().exec();
+  async update(id: string, data: Partial<User>): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  }
+
+  async delete(id: string): Promise<User | null> {
+    return this.userModel.findByIdAndDelete(id).exec();
   }
 }
