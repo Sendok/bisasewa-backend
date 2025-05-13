@@ -16,24 +16,58 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, pass: string): Promise<Omit<User, 'password'>> {
+  async validateUser(
+    email: string,
+    pass: string,
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.usersService.findByEmail(email);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const { password, ...result } = user.toObject();
-      return result;
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
-    throw new UnauthorizedException('Invalid credentials');
+
+    const isPasswordValid = await bcrypt.compare(pass, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    const { password: _password, ...result } = user.toObject() as User;
+    return result;
   }
 
-  login(user: Omit<User, 'password'>) {
-    const payload = { email: user.email, sub: user._id };
+  async login(
+    data: LoginDto,
+  ): Promise<{ access_token: string; user: Omit<User, 'password'> }> {
+    const user = await this.validateUser(data.email, data.password);
+    const payload = {
+      email: user.email,
+      sub: user._id.toString(),
+      // Add any additional claims you need in the JWT
+    };
+
     return {
       access_token: this.jwtService.sign(payload),
+      user: user, // Return user data along with token
     };
   }
 
   async register(data: RegisterDto): Promise<Omit<User, 'password'>> {
-    const hashed = await bcrypt.hash(data.password, 10);
-    return this.usersService.create({ ...data, password: hashed });
+    // Check if user already exists
+    const existingUser = await this.usersService.findByEmail(data.email);
+    if (existingUser) {
+      throw new UnauthorizedException('User already exists');
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    // Create new user
+    const newUser = await this.usersService.create({
+      ...data,
+      password: hashedPassword,
+    });
+
+    // Remove password from response
+    const { password, ...result } = newUser.toObject();
+    return result;
   }
 }
