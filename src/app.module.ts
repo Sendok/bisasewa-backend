@@ -1,7 +1,7 @@
 // app.module.ts
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import databaseConfig from './config/database.config';
 import { UsersModule } from './users/users.module';
 import { ListingsModule } from './listings/listings.module';
@@ -13,6 +13,8 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [databaseConfig] }),
     MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: () => ({
         uri: process.env.MONGODB_URI,
       }),

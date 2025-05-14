@@ -8,9 +8,10 @@ import { Document } from 'mongoose';
 export class EmailVerification extends Document {
   @Prop({ required: true })
   email: string;
-
   @Prop({ required: true })
   token: string;
+  @Prop({ default: Date.now, expires: 43200 }) // Expires in 12 hours
+  createdAt: Date;
 }
 
 // eslint-disable-next-line prettier/prettier

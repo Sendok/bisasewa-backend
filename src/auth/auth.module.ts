@@ -1,9 +1,4 @@
 // ====================
-// auth/schemas/auth.schema.ts (Opsional jika kamu simpan session/token)
-// ====================
-// Auth biasanya tidak butuh schema sendiri, hanya login/signup service
-
-// ====================
 // auth/auth.module.ts
 // ====================
 import { Module } from '@nestjs/common';
@@ -18,6 +13,12 @@ import { OtpService } from './otp.service';
 import { OtpController } from './otp.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { User, UserSchema } from '../users/schemas/user.schema'; // ✅ Import User schema
+import {
+  EmailVerification,
+  EmailVerificationSchema,
+} from './schemas/email-verification.schema'; // ✅ if using this too
+
 @Module({
   imports: [
     UsersModule,
@@ -26,7 +27,11 @@ import { MongooseModule } from '@nestjs/mongoose';
       secret: process.env.JWT_SECRET || 'secret123',
       signOptions: { expiresIn: '7d' },
     }),
-    MongooseModule.forFeature([{ name: OTP.name, schema: OTPSchema }]),
+    MongooseModule.forFeature([
+      { name: OTP.name, schema: OTPSchema },
+      { name: User.name, schema: UserSchema }, // ✅ Register User model
+      { name: EmailVerification.name, schema: EmailVerificationSchema }, // ✅ Register this too if used
+    ]),
   ],
   providers: [AuthService, JwtStrategy, OtpService],
   controllers: [AuthController, OtpController],
