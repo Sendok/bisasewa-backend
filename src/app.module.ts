@@ -7,6 +7,7 @@ import { UsersModule } from './users/users.module';
 import { ListingsModule } from './listings/listings.module';
 import { CategoryModule } from './categories/categories.module';
 import { BookingsModule } from './bookings/bookings.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BookingsModule } from './bookings/bookings.module';
     ListingsModule,
     CategoryModule,
     BookingsModule,
+    AuthModule,
     // ...modules like AuthModule, UsersModule, etc.
   ],
 })

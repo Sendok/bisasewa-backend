@@ -13,22 +13,22 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { OTP, OTPSchema } from './schemas/otp.schema';
+import { OtpService } from './otp.service';
+import { OtpController } from './otp.controller';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '7d' },
-      }),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'secret123',
+      signOptions: { expiresIn: '7d' },
     }),
+    MongooseModule.forFeature([{ name: OTP.name, schema: OTPSchema }]),
   ],
-  providers: [AuthService, JwtStrategy],
-  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, OtpService],
+  controllers: [AuthController, OtpController],
 })
 export class AuthModule {}

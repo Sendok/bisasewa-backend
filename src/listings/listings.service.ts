@@ -32,4 +32,24 @@ export class ListingsService {
   async delete(id: string): Promise<Listing | null> {
     return this.listingModel.findByIdAndDelete(id).exec();
   }
+
+  async search(query?: string, category?: string) {
+    interface ListingFilter {
+      isAvailable: boolean;
+      title?: { $regex: string; $options: string };
+      category?: string;
+    }
+    const filter: ListingFilter = { isAvailable: true };
+    if (query) {
+      filter.title = { $regex: query, $options: 'i' };
+    }
+    if (category) {
+      filter.category = category;
+    }
+    return this.listingModel.find(filter);
+  }
+
+  async getAllCategories() {
+    return this.listingModel.distinct('category');
+  }
 }

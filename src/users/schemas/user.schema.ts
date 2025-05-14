@@ -23,6 +23,8 @@ export class User extends Document {
 
   @Prop()
   address?: string;
+  @Prop({ default: false })
+  isVerified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
