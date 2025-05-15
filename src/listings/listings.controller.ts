@@ -1,6 +1,3 @@
-// ====================
-// listings/listings.controller.ts
-// ====================
 import {
   Controller,
   Get,
@@ -9,10 +6,10 @@ import {
   Param,
   Put,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ListingsService } from './listings.service';
 import { Listing } from './schemas/listing.schema';
-import { Query as NestQuery } from '@nestjs/common';
 
 @Controller('listings')
 export class ListingsController {
@@ -21,6 +18,19 @@ export class ListingsController {
   @Post()
   async create(@Body() data: Partial<Listing>) {
     return this.listingsService.create(data);
+  }
+
+  @Get('search')
+  async searchListings(
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+  ) {
+    return this.listingsService.search(query, category);
+  }
+
+  @Get('categories')
+  async listCategories() {
+    return this.listingsService.getAllCategories();
   }
 
   @Get()
@@ -42,20 +52,4 @@ export class ListingsController {
   async delete(@Param('id') id: string) {
     return this.listingsService.delete(id);
   }
-
-  @Get('search')
-  async searchListings(
-    @Query('q') query: string,
-    @Query('category') category: string,
-  ) {
-    return this.listingsService.search(query, category);
-  }
-
-  @Get('categories')
-  async listCategories() {
-    return this.listingsService.getAllCategories();
-  }
-}
-function Query(paramName: string) {
-  return NestQuery(paramName);
 }

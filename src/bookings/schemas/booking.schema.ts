@@ -1,6 +1,3 @@
-// ====================
-// bookings/schemas/booking.schema.ts
-// ====================
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Listing } from '../../listings/schemas/listing.schema';
@@ -20,8 +17,8 @@ export class Booking extends Document {
   @Prop({ required: true })
   endDate: Date;
 
-  @Prop({ default: 'pending' })
-  status: 'pending' | 'confirmed' | 'cancelled';
+  @Prop({ default: 'pending' }) // pending, confirmed, cancelled
+  status: string;
 
   @Prop()
   totalPrice: number;

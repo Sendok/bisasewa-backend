@@ -1,44 +1,47 @@
-// ====================
-// bookings/bookings.controller.ts
-// ====================
 import {
   Controller,
-  Get,
   Post,
+  Get,
   Put,
-  Delete,
   Param,
   Body,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
-import { Booking } from './schemas/booking.schema';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('bookings')
+@UseGuards(JwtAuthGuard)
 export class BookingsController {
   constructor(private readonly bookingsService: BookingsService) {}
 
   @Post()
-  async create(@Body() data: Partial<Booking>) {
-    return this.bookingsService.create(data);
+  create(@Body() body: any, @Req() req: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    const userId = req.user._id;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    return this.bookingsService.create({ ...body, renter: userId });
   }
 
   @Get()
-  async findAll() {
-    return this.bookingsService.findAll();
+  findAll(@Req() req: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    return this.bookingsService.findAllByUser(req.user._id);
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  findById(@Param('id') id: string) {
     return this.bookingsService.findById(id);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() data: Partial<Booking>) {
-    return this.bookingsService.update(id, data);
+  @Put(':id/cancel')
+  cancel(@Param('id') id: string) {
+    return this.bookingsService.cancel(id);
   }
 
-  @Delete(':id')
-  async delete(@Param('id') id: string) {
-    return this.bookingsService.delete(id);
+  @Post(':id/payment')
+  pay(@Param('id') id: string, @Body() body: any) {
+    return this.bookingsService.processPayment(id, body);
   }
 }

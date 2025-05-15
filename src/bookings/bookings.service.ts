@@ -1,6 +1,3 @@
-// ====================
-// bookings/bookings.service.ts
-// ====================
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -12,23 +9,35 @@ export class BookingsService {
     @InjectModel(Booking.name) private bookingModel: Model<Booking>,
   ) {}
 
-  async create(data: Partial<Booking>): Promise<Booking> {
+  async create(data: Partial<Booking>) {
     return new this.bookingModel(data).save();
   }
 
-  async findAll(): Promise<Booking[]> {
-    return this.bookingModel.find().populate('listing renter').exec();
+  async findAllByUser(userId: string) {
+    return this.bookingModel
+      .find({ renter: userId })
+      .populate('listing')
+      .exec();
   }
 
-  async findById(id: string): Promise<Booking | null> {
+  async findById(id: string) {
     return this.bookingModel.findById(id).populate('listing renter').exec();
   }
 
-  async update(id: string, data: Partial<Booking>): Promise<Booking | null> {
-    return this.bookingModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  async cancel(id: string) {
+    return this.bookingModel.findByIdAndUpdate(
+      id,
+      { status: 'cancelled' },
+      { new: true },
+    );
   }
 
-  async delete(id: string): Promise<Booking | null> {
-    return this.bookingModel.findByIdAndDelete(id).exec();
+  processPayment(id: string, paymentInfo: any) {
+    // Integrasi payment gateway di sini (dummy)
+    return {
+      success: true,
+      bookingId: id,
+      message: `Payment processed (mock) with info: ${JSON.stringify(paymentInfo)}`,
+    };
   }
 }
