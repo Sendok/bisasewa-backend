@@ -33,23 +33,83 @@ export class ListingsService {
     return this.listingModel.findByIdAndDelete(id).exec();
   }
 
-  async search(query?: string, category?: string) {
-    interface ListingFilter {
-      isAvailable: boolean;
-      title?: { $regex: string; $options: string };
-      category?: string;
-    }
-    const filter: ListingFilter = { isAvailable: true };
-    if (query) {
-      filter.title = { $regex: query, $options: 'i' };
-    }
-    if (category) {
-      filter.category = category;
-    }
-    return this.listingModel.find(filter);
-  }
-
   async getAllCategories() {
     return this.listingModel.distinct('category');
+  }
+
+  async search(filters: {
+    query?: string;
+    category?: string;
+    location?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    available?: boolean;
+    page?: number;
+    limit?: number;
+    sortBy?: string;
+    sortOrder?: string;
+  }) {
+    const {
+      query,
+      category,
+      location,
+      minPrice,
+      maxPrice,
+      available,
+      page = 1,
+      limit = 10,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = filters;
+
+    interface SearchConditions {
+      category?: string;
+      location?: RegExp;
+      isAvailable?: boolean;
+      pricePerDay?: { $gte?: number; $lte?: number };
+      $or?: { [key: string]: RegExp }[];
+    }
+
+    const conditions: SearchConditions = {};
+
+    if (query) {
+      conditions.$or = [
+        { title: new RegExp(query, 'i') },
+        { description: new RegExp(query, 'i') },
+      ];
+    }
+
+    if (category) conditions.category = category;
+    if (location) conditions.location = new RegExp(location, 'i');
+    if (typeof available === 'boolean') conditions.isAvailable = available;
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      conditions.pricePerDay = {};
+      if (minPrice !== undefined) conditions.pricePerDay.$gte = minPrice;
+      if (maxPrice !== undefined) conditions.pricePerDay.$lte = maxPrice;
+    }
+
+    const skip = (page - 1) * limit;
+    const sortOrderValue = sortOrder === 'asc' ? 1 : -1;
+
+    const [items, totalItems] = await Promise.all([
+      this.listingModel
+        .find(conditions)
+        .sort({ [sortBy]: sortOrderValue })
+        .skip(skip)
+        .limit(limit)
+        .exec(),
+      this.listingModel.countDocuments(conditions).exec(),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      items,
+      totalItems,
+      totalPages,
+      currentPage: page,
+      limit,
+    };
   }
 }

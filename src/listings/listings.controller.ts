@@ -20,14 +20,6 @@ export class ListingsController {
     return this.listingsService.create(data);
   }
 
-  @Get('search')
-  async searchListings(
-    @Query('q') query?: string,
-    @Query('category') category?: string,
-  ) {
-    return this.listingsService.search(query, category);
-  }
-
   @Get('categories')
   async listCategories() {
     return this.listingsService.getAllCategories();
@@ -51,5 +43,32 @@ export class ListingsController {
   @Delete(':id')
   async delete(@Param('id') id: string) {
     return this.listingsService.delete(id);
+  }
+
+  @Get('search')
+  async searchListings(
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+    @Query('location') location?: string,
+    @Query('minPrice') minPrice?: string,
+    @Query('maxPrice') maxPrice?: string,
+    @Query('available') available?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('sortBy') sortBy: string = 'createdAt',
+    @Query('sortOrder') sortOrder: string = 'desc',
+  ) {
+    return this.listingsService.search({
+      query,
+      category,
+      location,
+      minPrice: minPrice ? parseFloat(minPrice) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+      available: available === 'true',
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sortBy,
+      sortOrder,
+    });
   }
 }
