@@ -1,6 +1,6 @@
-// ====================
-// auth/dto/request-otp.dto.ts
-// ====================
+import { IsNotEmpty } from 'class-validator';
+
 export class RequestOtpDto {
+  @IsNotEmpty()
   phone: string;
 }

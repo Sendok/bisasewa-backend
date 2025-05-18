@@ -1,6 +1,3 @@
-// ====================
-// auth/otp.service.ts
-// ====================
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -14,25 +11,40 @@ export class OtpService {
 
   async requestOtp(dto: RequestOtpDto) {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 5 * 60000); // 5 menit
+    const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes expiry
 
-    await this.otpModel.create({ phone: dto.phone, code, expiresAt });
+    await this.otpModel.create({
+      phone: dto.phone,
+      code,
+      expiresAt,
+    });
 
-    // Kirim SMS disini (mock/3rd-party)
-    console.log(`OTP for ${dto.phone} is ${code}`);
+    // In production, integrate with SMS service here
+    console.log(`OTP for ${dto.phone}: ${code}`);
 
-    return { message: 'OTP sent' };
+    return {
+      message: 'OTP sent successfully',
+      phone: dto.phone,
+    };
   }
 
   async verifyOtp(dto: VerifyOtpDto) {
-    const record = await this.otpModel.findOne({
+    const otp = await this.otpModel.findOne({
       phone: dto.phone,
       code: dto.code,
+      expiresAt: { $gt: new Date() },
     });
-    if (!record || record.expiresAt < new Date()) {
-      throw new UnauthorizedException('OTP invalid or expired');
+
+    if (!otp) {
+      throw new UnauthorizedException('Invalid or expired OTP');
     }
-    await this.otpModel.deleteMany({ phone: dto.phone });
-    return { message: 'OTP verified' };
+
+    // Delete used OTP
+    await this.otpModel.deleteOne({ _id: otp._id });
+
+    return {
+      message: 'OTP verified successfully',
+      phone: dto.phone,
+    };
   }
 }

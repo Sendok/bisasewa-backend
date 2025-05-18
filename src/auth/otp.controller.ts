@@ -1,6 +1,3 @@
-// ====================
-// auth/otp.controller.ts
-// ====================
 import { Controller, Post, Body } from '@nestjs/common';
 import { OtpService } from './otp.service';
 import { RequestOtpDto } from './dto/request-otp.dto';
